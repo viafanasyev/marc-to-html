@@ -130,6 +130,9 @@ titleTag = "245"
 titleSubfield :: Char
 titleSubfield = 'a'
 
+titleRemainderSubfield :: Char
+titleRemainderSubfield = 'b'
+
 authorTag :: T.Text
 authorTag = "100"
 
@@ -160,7 +163,12 @@ lookupValue tag subfield record = lookupSubfield entryMetadata subfield record
     entryMetadata = lookupFieldMetadata tag record
 
 lookupTitle :: MarcRecordRaw -> Maybe Book.Title
-lookupTitle = lookupValue titleTag titleSubfield
+lookupTitle record
+    | isJust titleBeginning && isJust titleRemainder = Just $ T.unwords [fromJust titleBeginning, fromJust titleRemainder]
+    | otherwise = Nothing
+  where
+    titleBeginning = lookupValue titleTag titleSubfield record
+    titleRemainder = lookupValue titleTag titleRemainderSubfield record
 
 lookupAuthor :: MarcRecordRaw -> Maybe Book.Author
 lookupAuthor = lookupValue authorTag authorSubfield
