@@ -1,0 +1,13 @@
+### Consider files without extension to be executables and ignore them ###
+# Ignore all
+*
+# Unignore all with extensions
+!*.*
+# Unignore all dirs
+!*/
+# Unignore Makefile
+!Makefile
+
+*.o
+*.hi
+.*.swp
