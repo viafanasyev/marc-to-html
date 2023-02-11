@@ -1,52 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MarcToHtml
-    ( Book (..)
-    , bookToHtml
-    , booksToHtml
-    , allRecords
-    , processRecords
+module MarcReader
+    ( allRecords
+    , readRecords
     ) where
 
+import           Book               (Book (..))
+import qualified Book
 import qualified Data.ByteString    as B
 import           Data.Maybe         (fromJust, isJust)
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as E
-
-type Author = T.Text
-type Title = T.Text
-
-data Book = Book
-    { author :: Author
-    , title  :: Title
-    } deriving Show
-
-type Html = T.Text
-
-bookToHtml :: Book -> Html
-bookToHtml book = mconcat
-    [ "<p>\n"
-    , titleInTags
-    , authorInTags
-    , "</p>\n"
-    ]
-  where
-    titleInTags = mconcat [ "<strong>", title book, "</strong>\n" ]
-    authorInTags = mconcat [ "<em>", author book, "</em>\n" ]
-
-booksToHtml :: [Book] -> Html
-booksToHtml books = mconcat
-    [ "<html>\n"
-    , "<head><title>Books</title>"
-    , "<meta charset='utf-8'/>"
-    , "</head>\n"
-    , "<body>\n"
-    , booksHtml
-    , "</body>\n"
-    , "</html>"
-    ]
-  where
-    booksHtml = mconcat $ map bookToHtml books
 
 newtype MarcRecordRaw = MarcRecordRaw B.ByteString
 newtype MarcLeaderRaw = MarcLeaderRaw B.ByteString
@@ -196,20 +160,20 @@ lookupValue tag subfield record = lookupSubfield entryMetadata subfield record
   where
     entryMetadata = lookupFieldMetadata tag record
 
-lookupTitle :: MarcRecordRaw -> Maybe T.Text
+lookupTitle :: MarcRecordRaw -> Maybe Book.Title
 lookupTitle = lookupValue titleTag titleSubfield
 
-lookupAuthor :: MarcRecordRaw -> Maybe T.Text
+lookupAuthor :: MarcRecordRaw -> Maybe Book.Author
 lookupAuthor = lookupValue authorTag authorSubfield
 
-marcToPairs :: B.ByteString -> [(Maybe Title, Maybe Author)]
+marcToPairs :: B.ByteString -> [(Maybe Book.Title, Maybe Book.Author)]
 marcToPairs marcStream = zip titles authors
   where
     records = allRecords marcStream
     titles = map lookupTitle records
     authors = map lookupAuthor records
 
-pairsToBooks :: [(Maybe Title, Maybe Author)] -> [Book]
+pairsToBooks :: [(Maybe Book.Title, Maybe Book.Author)] -> [Book]
 pairsToBooks pairs = map (\(title, author) -> Book
     { title = fromJust title
     , author = fromJust author
@@ -217,5 +181,5 @@ pairsToBooks pairs = map (\(title, author) -> Book
   where
     justPairs = filter (\(title, author) -> isJust title && isJust author) pairs
 
-processRecords :: Int -> B.ByteString -> Html
-processRecords n = booksToHtml . pairsToBooks . take n . marcToPairs
+readRecords :: B.ByteString -> [Book]
+readRecords = pairsToBooks . marcToPairs
