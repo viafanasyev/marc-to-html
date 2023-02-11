@@ -110,13 +110,12 @@ getBase :: MarcRecordRaw -> MarcBaseRaw
 getBase record@(MarcRecordRaw recordText) = MarcBaseRaw $ B.drop baseAddress recordText
   where
     leader = getLeader record
-    recordLength = getRecordLength leader
     baseAddress = getBaseAddress leader
 
 type FieldText = T.Text
 
 getTextField :: MarcRecordRaw -> FieldMetadata -> FieldText
-getTextField record@(MarcRecordRaw recordText) fieldMetadata = E.decodeUtf8 byteStringValue
+getTextField record fieldMetadata = E.decodeUtf8 byteStringValue
   where
     (MarcBaseRaw baseText) = getBase record
     baseAtEntry = B.drop (fieldStart fieldMetadata) baseText

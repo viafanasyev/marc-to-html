@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main where
+module Main (main) where
 
 import           Book            (Html)
 import qualified Book
 import qualified Data.ByteString as B
-import qualified Data.Text       as T
 import qualified Data.Text.IO    as TIO
 import qualified MarcReader      as MRC
 
